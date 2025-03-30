@@ -1,17 +1,14 @@
 import java.util.Scanner;
 
 public class pr1 {
-    static int findMin(int[] arr){
-        if(arr.length == 1){
-            return arr[0];
+    static int findMin(int[] arr, int id, int min){
+        if(arr.length == id){
+            return min;
         }
-
-        for(int i = 0; i < arr.length; i++){
-            if(arr[0] > arr[i]){
-                arr[0] = arr[i];
-            }
+        if(arr[id] < min){
+            min = arr[id];
         }
-        return arr[0];
+        return findMin(arr, id + 1, min);
     }
     public static void main(String[] args) {
 
@@ -24,7 +21,7 @@ public class pr1 {
             arr[i] = sc.nextInt();
         }
 
-        int min = findMin(arr);
+        int min = findMin(arr, 1, arr[0]);
         System.out.println(min);
     }
 }
