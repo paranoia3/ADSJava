@@ -2,41 +2,28 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class MyArrayList<T> implements MyList<T>{
-    private T[] elements;
+public class MyArrayList<T> implements MyList<T> {
+    private Object[] array;
     private int size;
     private static final int DEFAULT_CAPACITY = 10;
 
     public MyArrayList() {
-        this.elements = (T[]) new Object[DEFAULT_CAPACITY];
+        this.array = new Object[DEFAULT_CAPACITY];
         this.size = 0;
     }
 
-    public MyArrayList(int initialCapacity) {
-        this.elements = (T[]) new Object[initialCapacity];
+    public MyArrayList(int capacity) {
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("Capacity must be positive");
+        }
+        this.array = new Object[capacity];
         this.size = 0;
     }
-    
+
     @Override
     public void add(T item) {
         ensureCapacity(size + 1);
-        elements[size++] = item;
-    }
-
-    private void ensureCapacity(int i) {
-        if(size == elements.length){
-            elements = Arrays.copyOf(elements, size + DEFAULT_CAPACITY);
-        }
-    }
-
-    @Override
-    public T set(int index, T item) {
-        if(index < 0 || index >= size){
-            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
-        }
-        T oldelement = (T) elements[index];
-        elements[index] = item;
-        return oldelement;
+        array[size++] = item;
     }
 
     @Override
@@ -45,9 +32,17 @@ public class MyArrayList<T> implements MyList<T>{
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
         ensureCapacity(size + 1);
-        System.arraycopy(elements, index, elements, index + 1, size - index);
-        elements[index] = item;
+        System.arraycopy(array, index, array, index + 1, size - index);
+        array[index] = item;
         size++;
+    }
+
+    @Override
+    public void set(int index, T item) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
+        array[index] = item;
     }
 
     @Override
@@ -61,11 +56,12 @@ public class MyArrayList<T> implements MyList<T>{
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T get(int index) {
-        if (index < 0 || index > size) {
+        if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
-        return (T) elements[index];
+        return (T) array[index];
     }
 
     @Override
@@ -73,11 +69,7 @@ public class MyArrayList<T> implements MyList<T>{
         if (isEmpty()) {
             throw new NoSuchElementException("List is empty");
         }
-        return elements[0];
-    }
-
-    private boolean isEmpty() {
-        return size == 0;
+        return get(0);
     }
 
     @Override
@@ -85,20 +77,16 @@ public class MyArrayList<T> implements MyList<T>{
         if (isEmpty()) {
             throw new NoSuchElementException("List is empty");
         }
-        return elements[size - 1];
+        return get(size - 1);
     }
 
     @Override
     public void remove(int index) {
-        if (index < 0 || index > size) {
+        if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
-        T removeElement = (T) elements[index];
-        int numMoved = size - index - 1;
-        if (numMoved > 0) {
-            System.arraycopy(elements, index + 1, elements, index, numMoved);
-        }
-        elements[--size] = null;
+        System.arraycopy(array, index + 1, array, index, size - index - 1);
+        array[--size] = null;
     }
 
     @Override
@@ -119,16 +107,23 @@ public class MyArrayList<T> implements MyList<T>{
 
     @Override
     public void sort() {
-        if (size > 0) {
-            Arrays.sort(elements, 0, size, null);
-        }
+        Arrays.sort((T[]) Arrays.copyOf(array, size));
+        System.arraycopy(Arrays.copyOf(array, size), 0, array, 0, size);
     }
 
     @Override
     public int indexOf(Object object) {
-        for(int index = 0; index < size; index++){
-            if(object.equals(elements[index])){
-                return index;
+        if (object == null) {
+            for (int i = 0; i < size; i++) {
+                if (array[i] == null) {
+                    return i;
+                }
+            }
+        } else {
+            for (int i = 0; i < size; i++) {
+                if (object.equals(array[i])) {
+                    return i;
+                }
             }
         }
         return -1;
@@ -138,13 +133,13 @@ public class MyArrayList<T> implements MyList<T>{
     public int lastIndexOf(Object object) {
         if (object == null) {
             for (int i = size - 1; i >= 0; i--) {
-                if (elements[i] == null) {
+                if (array[i] == null) {
                     return i;
                 }
             }
         } else {
             for (int i = size - 1; i >= 0; i--) {
-                if (object.equals(elements[i])) {
+                if (object.equals(array[i])) {
                     return i;
                 }
             }
@@ -159,12 +154,12 @@ public class MyArrayList<T> implements MyList<T>{
 
     @Override
     public Object[] toArray() {
-        return Arrays.copyOf(elements, size);
+        return Arrays.copyOf(array, size);
     }
 
     @Override
     public void clear() {
-        Arrays.fill(elements, 0, size, null);
+        Arrays.fill(array, 0, size, null);
         size = 0;
     }
 
@@ -173,11 +168,36 @@ public class MyArrayList<T> implements MyList<T>{
         return size;
     }
 
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    private void ensureCapacity(int minCapacity) {
+        if (minCapacity > array.length) {
+            int newCapacity = Math.max(array.length * 2, minCapacity);
+            array = Arrays.copyOf(array, newCapacity);
+        }
+    }
+
     @Override
     public Iterator<T> iterator() {
-        return new ArrayListIterator();
+        return new MyArrayListIterator();
     }
-    private class ArrayListIterator implements Iterator<T> {
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < size; i++) {
+            sb.append(array[i]);
+            if (i < size - 1) {
+                sb.append(", ");
+            }
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private class MyArrayListIterator implements Iterator<T> {
         private int currentIndex = 0;
 
         @Override
@@ -186,21 +206,17 @@ public class MyArrayList<T> implements MyList<T>{
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public T next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            return elements[currentIndex++];
+            return (T) array[currentIndex++];
         }
 
         @Override
         public void remove() {
-            throw new UnsupportedOperationException("Remove is not supported");
-        }
-    }
-    private void checkIndex(int index) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+            throw new UnsupportedOperationException("Remove operation is not supported");
         }
     }
 }

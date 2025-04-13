@@ -1,6 +1,6 @@
 public interface MyList<T> extends Iterable<T> {
     void add(T item);
-    T set(int index, T item);
+    void set(int index, T item);
     void add(int index, T item);
     void addFirst(T item);
     void addLast(T item);
