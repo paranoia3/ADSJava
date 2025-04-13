@@ -89,7 +89,7 @@ public class MyArrayList<T> implements MyList<T>{
     }
 
     @Override
-    public T remove(int index) {
+    public void remove(int index) {
         if (index < 0 || index > size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
@@ -99,7 +99,6 @@ public class MyArrayList<T> implements MyList<T>{
             System.arraycopy(elements, index + 1, elements, index, numMoved);
         }
         elements[--size] = null;
-        return removeElement;
     }
 
     @Override

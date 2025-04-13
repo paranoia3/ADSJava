@@ -7,7 +7,7 @@ public interface MyList<T> extends Iterable<T> {
     T get(int index);
     T getFirst();
     T getLast();
-    T remove(int index);
+    void remove(int index);
     void removeFirst();
     void removeLast();
     void sort();
