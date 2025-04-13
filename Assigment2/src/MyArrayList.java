@@ -1,7 +1,6 @@
 import java.util.Arrays;
 import java.util.Iterator;
-
-import static com.sun.tools.javac.util.ArrayUtils.ensureCapacity;
+import java.util.NoSuchElementException;
 
 public class MyArrayList<T> implements MyList<T>{
     private T[] elements;
@@ -14,13 +13,8 @@ public class MyArrayList<T> implements MyList<T>{
     }
 
     public MyArrayList(int initialCapacity) {
-        if(initialCapacity > 0){
-            this.elements = (T[]) new Object[initialCapacity];
-        } else if(initialCapacity == 0){
-            this.elements = (T[]) new Object[0];
-        } else{
-            throw new IllegalArgumentException("Illegal Capacity: " + initialCapacity);
-        }
+        this.elements = (T[]) new Object[initialCapacity];
+        this.size = 0;
     }
     
     @Override
@@ -31,14 +25,18 @@ public class MyArrayList<T> implements MyList<T>{
 
     private void ensureCapacity(int i) {
         if(size == elements.length){
-            elements = Arrays.copyOf(elements, size + CAPACITY);
+            elements = Arrays.copyOf(elements, size + DEFAULT_CAPACITY);
         }
     }
 
     @Override
-    public void set(int index, T item) {
-        checkIndex(index);
+    public T set(int index, T item) {
+        if(index < 0 || index >= size){
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
+        T oldelement = (T) elements[index];
         elements[index] = item;
+        return oldelement;
     }
 
     @Override
@@ -54,81 +52,156 @@ public class MyArrayList<T> implements MyList<T>{
 
     @Override
     public void addFirst(T item) {
-
+        add(0, item);
     }
 
     @Override
     public void addLast(T item) {
-
+        add(item);
     }
 
     @Override
     public T get(int index) {
-        return null;
+        if (index < 0 || index > size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
+        return (T) elements[index];
     }
 
     @Override
     public T getFirst() {
-        return null;
+        if (isEmpty()) {
+            throw new NoSuchElementException("List is empty");
+        }
+        return elements[0];
+    }
+
+    private boolean isEmpty() {
+        return size == 0;
     }
 
     @Override
     public T getLast() {
-        return null;
+        if (isEmpty()) {
+            throw new NoSuchElementException("List is empty");
+        }
+        return elements[size - 1];
     }
 
     @Override
-    public void remove(int index) {
-
+    public T remove(int index) {
+        if (index < 0 || index > size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
+        T removeElement = (T) elements[index];
+        int numMoved = size - index - 1;
+        if (numMoved > 0) {
+            System.arraycopy(elements, index + 1, elements, index, numMoved);
+        }
+        elements[--size] = null;
+        return removeElement;
     }
 
     @Override
     public void removeFirst() {
-
+        if (isEmpty()) {
+            throw new NoSuchElementException("List is empty");
+        }
+        remove(0);
     }
 
     @Override
     public void removeLast() {
-
+        if (isEmpty()) {
+            throw new NoSuchElementException("List is empty");
+        }
+        remove(size - 1);
     }
 
     @Override
     public void sort() {
-
+        if (size > 0) {
+            Arrays.sort(elements, 0, size, null);
+        }
     }
 
     @Override
     public int indexOf(Object object) {
-        return 0;
+        for(int index = 0; index < size; index++){
+            if(object.equals(elements[index])){
+                return index;
+            }
+        }
+        return -1;
     }
 
     @Override
     public int lastIndexOf(Object object) {
-        return 0;
+        if (object == null) {
+            for (int i = size - 1; i >= 0; i--) {
+                if (elements[i] == null) {
+                    return i;
+                }
+            }
+        } else {
+            for (int i = size - 1; i >= 0; i--) {
+                if (object.equals(elements[i])) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
     @Override
     public boolean exists(Object object) {
-        return false;
+        return indexOf(object) >= 0;
     }
 
     @Override
     public Object[] toArray() {
-        return new Object[0];
+        return Arrays.copyOf(elements, size);
     }
 
     @Override
     public void clear() {
-
+        Arrays.fill(elements, 0, size, null);
+        size = 0;
     }
 
     @Override
     public int size() {
-        return 0;
+        return size;
     }
 
     @Override
     public Iterator<T> iterator() {
-        return null;
+        return new ArrayListIterator();
+    }
+    private class ArrayListIterator implements Iterator<T> {
+        private int currentIndex = 0;
+
+        @Override
+        public boolean hasNext() {
+            return currentIndex < size;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            return elements[currentIndex++];
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("Remove is not supported");
+        }
+    }
+    private void checkIndex(int index) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
     }
 }
