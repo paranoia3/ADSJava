@@ -1,5 +1,8 @@
-public class MyHashTable<K, V> {
-    private class HashNode<K, V> {
+import java.util.Objects;
+
+class MyHashTable<K, V> {
+
+    private static class HashNode<K, V> {
         private K key;
         private V value;
         private HashNode<K, V> next;
@@ -7,11 +10,12 @@ public class MyHashTable<K, V> {
         public HashNode(K key, V value) {
             this.key = key;
             this.value = value;
+            this.next = null;
         }
 
         @Override
         public String toString() {
-            return "{" + key + " " + value + "}";
+            return "{" + key + "=" + value + "}";
         }
     }
 
@@ -20,88 +24,101 @@ public class MyHashTable<K, V> {
     private int size;
 
     public MyHashTable() {
-        chainArray = new HashNode[M];
-        size = 0;
+        this.chainArray = (HashNode<K, V>[]) new HashNode[M];
+        this.size = 0;
     }
 
     public MyHashTable(int M) {
+        if (M <= 0) {
+            throw new IllegalArgumentException("Initial capacity must be positive");
+        }
         this.M = M;
-        chainArray = new HashNode[M];
-        size = 0;
+        this.chainArray = (HashNode<K, V>[]) new HashNode[this.M];
+        this.size = 0;
     }
 
     private int hash(K key) {
-        return Math.abs(key.hashCode()) % M;
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null for hashing");
+        }
+        int hashCode = key.hashCode();
+        int index = (hashCode & 0x7fffffff) % M;
+        return index;
     }
 
     public void put(K key, V value) {
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null");
+        }
         int index = hash(key);
         HashNode<K, V> head = chainArray[index];
-
-        while (head != null) {
-            if (head.key.equals(key)) {
-                head.value = value;
+        HashNode<K, V> currentNode = head;
+        while (currentNode != null) {
+            if (currentNode.key.equals(key)) {
+                currentNode.value = value;
                 return;
             }
-            head = head.next;
+            currentNode = currentNode.next;
         }
 
         size++;
-        head = chainArray[index];
         HashNode<K, V> newNode = new HashNode<>(key, value);
         newNode.next = head;
         chainArray[index] = newNode;
     }
 
     public V get(K key) {
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null");
+        }
         int index = hash(key);
-        HashNode<K, V> head = chainArray[index];
-
-        while (head != null) {
-            if (head.key.equals(key)) {
-                return head.value;
+        HashNode<K, V> currentNode = chainArray[index];
+        while (currentNode != null) {
+            if (currentNode.key.equals(key)) {
+                return currentNode.value;
             }
-            head = head.next;
+            currentNode = currentNode.next;
         }
         return null;
     }
 
     public V remove(K key) {
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null");
+        }
         int index = hash(key);
         HashNode<K, V> head = chainArray[index];
-        HashNode<K, V> prev = null;
+        HashNode<K, V> currentNode = head;
+        HashNode<K, V> prevNode = null;
 
-        while (head != null) {
-            if (head.key.equals(key)) {
-                break;
+        while (currentNode != null) {
+            if (currentNode.key.equals(key)) {
+                if (prevNode == null) {
+                    chainArray[index] = currentNode.next;
+                } else {
+                    prevNode.next = currentNode.next;
+                }
+                size--;
+                return currentNode.value;
             }
-            prev = head;
-            head = head.next;
+            prevNode = currentNode;
+            currentNode = currentNode.next;
         }
-
-        if (head == null) {
-            return null;
-        }
-
-        size--;
-
-        if (prev != null) {
-            prev.next = head.next;
-        } else {
-            chainArray[index] = head.next;
-        }
-
-        return head.value;
+        return null;
     }
 
     public boolean contains(V value) {
         for (int i = 0; i < M; i++) {
-            HashNode<K, V> head = chainArray[i];
-            while (head != null) {
-                if (head.value.equals(value)) {
+            HashNode<K, V> currentNode = chainArray[i];
+            while (currentNode != null) {
+                if (value == null) {
+                    if (currentNode.value == null) {
+                        return true;
+                    }
+                } else if (value.equals(currentNode.value)) {
                     return true;
                 }
-                head = head.next;
+                currentNode = currentNode.next;
             }
         }
         return false;
@@ -109,12 +126,16 @@ public class MyHashTable<K, V> {
 
     public K getKey(V value) {
         for (int i = 0; i < M; i++) {
-            HashNode<K, V> head = chainArray[i];
-            while (head != null) {
-                if (head.value.equals(value)) {
-                    return head.key;
+            HashNode<K, V> currentNode = chainArray[i];
+            while (currentNode != null) {
+                if (value == null) {
+                    if (currentNode.value == null) {
+                        return currentNode.key;
+                    }
+                } else if (value.equals(currentNode.value)) {
+                    return currentNode.key;
                 }
-                head = head.next;
+                currentNode = currentNode.next;
             }
         }
         return null;
@@ -124,15 +145,11 @@ public class MyHashTable<K, V> {
         return size;
     }
 
-    public void printBucketSizes() {
-        for (int i = 0; i < M; i++) {
-            int count = 0;
-            HashNode<K, V> head = chainArray[i];
-            while (head != null) {
-                count++;
-                head = head.next;
-            }
-            System.out.println("Bucket " + i + " size: " + count);
-        }
+    public int getCapacity() {
+        return M;
+    }
+
+    public HashNode<K, V>[] getChains() {
+        return chainArray;
     }
 }
