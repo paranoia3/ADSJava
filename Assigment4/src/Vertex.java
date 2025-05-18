@@ -43,5 +43,4 @@ public class Vertex<V> {
     public String toString() {
         return data.toString();
     }
-
 }

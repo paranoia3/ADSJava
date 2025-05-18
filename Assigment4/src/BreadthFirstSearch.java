@@ -40,6 +40,7 @@ public class BreadthFirstSearch<V> implements Search<V> {
         for (Vertex<V> x = dest; x != start; x = edgeTo.get(x)) {
             path.addFirst(x);
         }
+
         path.addFirst(start);
         return path;
     }
