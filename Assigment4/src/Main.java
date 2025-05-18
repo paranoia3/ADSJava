@@ -25,7 +25,5 @@ public class Main {
         List<Vertex<Integer>> pathDijkstra = dijkstra.pathTo(v4);
         System.out.println(pathDijkstra);
         System.out.println("Distance: " + dijkstra.getDistance(v4));
-
     }
-
 }
