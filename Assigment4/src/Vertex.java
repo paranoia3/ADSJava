@@ -3,6 +3,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Vertex<V> {
+
     private V data;
     private Map<Vertex<V>, Double> adjacentVertices;
 
@@ -42,4 +43,5 @@ public class Vertex<V> {
     public String toString() {
         return data.toString();
     }
+
 }
