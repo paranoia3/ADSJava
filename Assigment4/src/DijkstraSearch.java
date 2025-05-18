@@ -30,7 +30,7 @@ public class DijkstraSearch<V> implements Search<V>{
         if (newDist < distTo.get(to)) {
             distTo.put(to, newDist);
             edgeTo.put(to, from);
-            priorityQueue.remove(to); // re-insert to update priority
+            priorityQueue.remove(to);
             priorityQueue.add(to);
         }
     }
